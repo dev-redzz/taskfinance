@@ -98,14 +98,26 @@ const Charts = {
       const data = await Api.finances.evolution();
       const canvas = document.getElementById('chartLine');
       if (!canvas) return;
-      
+
       this.destroy('line');
-      
-      const labels = data.map(d => {
+
+      // Garante altura fixa no container para evitar crescimento infinito
+      const wrap = canvas.parentElement;
+      wrap.style.position = 'relative';
+      wrap.style.height = '200px';
+
+      // Com só 1 ponto, duplica para o gráfico não quebrar
+      const chartData = data.length === 1 ? [data[0], data[0]] : data;
+
+      const labels = chartData.map(d => {
         const [y, m] = d.month.split('-');
         return new Date(+y, +m - 1).toLocaleDateString('pt-BR', { month: 'short', year: '2-digit' });
       });
-      
+
+      // Calcula o maior valor para definir teto do eixo Y
+      const allValues = chartData.flatMap(d => [d.income, d.expenses]);
+      const maxVal = Math.max(...allValues, 100);
+
       this.instances.line = new Chart(canvas, {
         type: 'line',
         data: {
@@ -113,7 +125,7 @@ const Charts = {
           datasets: [
             {
               label: 'Receitas',
-              data: data.map(d => d.income),
+              data: chartData.map(d => d.income),
               borderColor: '#10b981',
               backgroundColor: 'rgba(16,185,129,0.1)',
               fill: true,
@@ -124,7 +136,7 @@ const Charts = {
             },
             {
               label: 'Despesas',
-              data: data.map(d => d.expenses),
+              data: chartData.map(d => d.expenses),
               borderColor: '#ef4444',
               backgroundColor: 'rgba(239,68,68,0.1)',
               fill: true,
@@ -136,10 +148,11 @@ const Charts = {
           ]
         },
         options: {
-          ...this.chartDefaults,
+          responsive: true,
+          maintainAspectRatio: false,
           plugins: {
-            ...this.chartDefaults.plugins,
-            legend: { display: true,
+            legend: {
+              display: true,
               labels: { color: '#9490b5', usePointStyle: true, pointStyleWidth: 10 }
             },
             tooltip: {
@@ -155,6 +168,8 @@ const Charts = {
               ticks: { color: '#5c5880', font: { size: 11 } }
             },
             y: {
+              min: 0,
+              max: Math.ceil(maxVal * 1.2),  // 20% de margem acima
               grid: { color: 'rgba(255,255,255,0.05)' },
               ticks: {
                 color: '#5c5880',
@@ -173,14 +188,21 @@ const Charts = {
       const data = await Api.finances.evolution();
       const canvas = document.getElementById('chartBar');
       if (!canvas) return;
-      
+
       this.destroy('bar');
-      
+
+      // Garante altura fixa
+      const wrap = canvas.parentElement;
+      wrap.style.position = 'relative';
+      wrap.style.height = '180px';
+
       const labels = data.map(d => {
         const [y, m] = d.month.split('-');
         return new Date(+y, +m - 1).toLocaleDateString('pt-BR', { month: 'short' });
       });
-      
+
+      const maxVal = Math.max(...data.map(d => d.expenses), 100);
+
       this.instances.bar = new Chart(canvas, {
         type: 'bar',
         data: {
@@ -196,9 +218,10 @@ const Charts = {
           }]
         },
         options: {
-          ...this.chartDefaults,
+          responsive: true,
+          maintainAspectRatio: false,
           plugins: {
-            ...this.chartDefaults.plugins,
+            legend: { display: false },
             tooltip: {
               ...this.chartDefaults.plugins.tooltip,
               callbacks: {
@@ -212,6 +235,8 @@ const Charts = {
               ticks: { color: '#5c5880', font: { size: 11 } }
             },
             y: {
+              min: 0,
+              max: Math.ceil(maxVal * 1.2),
               grid: { color: 'rgba(255,255,255,0.05)' },
               ticks: {
                 color: '#5c5880',
