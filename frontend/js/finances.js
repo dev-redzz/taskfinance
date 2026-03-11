@@ -167,7 +167,6 @@ const Finances = {
       this.closeModal();
       await this.load();
       App.refreshDashboard();
-      Charts.loadAll();
     } catch(e) {
       App.toast(e.message, 'error');
     }
