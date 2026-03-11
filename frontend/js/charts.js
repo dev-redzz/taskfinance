@@ -5,7 +5,7 @@
 
 const Charts = {
   instances: {},
-
+  loading: false,
   chartDefaults: {
     responsive: true,
     maintainAspectRatio: false,
@@ -31,12 +31,18 @@ const Charts = {
   },
 
   async loadAll() {
+  if (this.loading) return;
+  this.loading = true;
+  try {
     await Promise.all([
       this.loadPie(),
       this.loadLine(),
       this.loadBar()
     ]);
-  },
+  } finally {
+    this.loading = false;
+  }
+},
 
   async loadPie() {
     try {
