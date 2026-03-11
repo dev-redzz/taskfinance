@@ -51,6 +51,10 @@ const Charts = {
       if (!canvas) return;
       
       this.destroy('pie');
+
+      const wrap = canvas.parentElement;
+       wrap.style.position = 'relative';
+        wrap.style.height = '220px';
       
       if (!data.length) {
         canvas.parentElement.querySelector('.pie-legend').innerHTML = 
